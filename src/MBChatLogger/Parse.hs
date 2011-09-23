@@ -27,4 +27,4 @@ parseChatChannel =
     reqTag foaf "ChatChannel" $
       reqTag foaf "chatEventList" $
         reqTag rdf "Seq" $
-          many (parseEvent)
+          many parseEvent

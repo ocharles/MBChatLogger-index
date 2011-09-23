@@ -41,7 +41,7 @@ reqTag :: Monad m
        -> Iteratee Event m c
        -> Iteratee Event m c
 reqTag ns tname = force errorMsg . nsTag ns tname
-  where errorMsg = (BS.unpack $ E.encodeUtf8 tname) ++ " is required"
+  where errorMsg = BS.unpack (E.encodeUtf8 tname) ++ " is required"
 
 --------------------------------------------------------------------------------
 -- | Require a tag to be present, and use a specific attribute parser.
@@ -52,33 +52,33 @@ reqTagAttr :: Monad m
            -> (b -> Iteratee Event m c)
            -> Iteratee Event m c
 reqTagAttr ns tname a f = force errorMsg $ nsTagAttr ns tname a f
-  where errorMsg = (BS.unpack $ E.encodeUtf8 tname) ++ " is required"
+  where errorMsg = BS.unpack (E.encodeUtf8 tname) ++ " is required"
 
 --------------------------------------------------------------------------------
 -- | Optional tag parser, that ignore all attributes.
 nsTag :: Monad m
       => Text -> Text -> Iteratee Event m b
       -> Iteratee Event m (Maybe b)
-nsTag ns tname f = tagName (Name { nameLocalName = tname
-                                       , nameNamespace = Just ns
-                                       , namePrefix = Nothing
-                                       }) (ignoreAttrs) $ \_ -> f
+nsTag ns tname f = tagName Name { nameLocalName = tname
+                                , nameNamespace = Just ns
+                                , namePrefix = Nothing
+                                } ignoreAttrs $ \_ -> f
 
 --------------------------------------------------------------------------------
 -- | Optional tag parser, that can parse attributes
 nsTagAttr :: Monad m
           => Text -> Text -> AttrParser a -> (a -> Iteratee Event m b)
           -> Iteratee Event m (Maybe b)
-nsTagAttr ns tname = tagName (Name { nameLocalName = tname
-                                   , nameNamespace = Just ns
-                                   , namePrefix = Nothing
-                                   })
+nsTagAttr ns tname = tagName Name { nameLocalName = tname
+                                  , nameNamespace = Just ns
+                                  , namePrefix = Nothing
+                                  }
 
 --------------------------------------------------------------------------------
 -- | An attribute parser that requires an attribute in a certain namespace is
 -- present.
 reqAttr :: Text -> Text -> AttrParser Text
-reqAttr ns name = requireAttr $ Name { nameLocalName = name
-                                     , nameNamespace = Just ns
-                                     , namePrefix = Nothing
-                                     }
+reqAttr ns name = requireAttr Name { nameLocalName = name
+                                   , nameNamespace = Just ns
+                                   , namePrefix = Nothing
+                                   }

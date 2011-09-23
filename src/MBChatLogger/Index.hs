@@ -16,7 +16,7 @@ instance ToJSON IRCEvent where
 
 index :: IRCEvent -> IO Response
 index ev = do
-  r <- (parseUrl "http://127.0.0.1:9200/irc/message")
+  r <- parseUrl "http://127.0.0.1:9200/irc/message"
   withManager $
     httpLbs r { method = "POST"
               , requestBody = RequestBodyLBS (encode $ toJSON ev)
