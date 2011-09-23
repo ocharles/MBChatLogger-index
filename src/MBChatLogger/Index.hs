@@ -9,10 +9,12 @@ import Network.HTTP.Enumerator (parseUrl, withManager, httpLbs, method
 import MBChatLogger.Types
 
 instance ToJSON IRCEvent where
-  toJSON (Say id' user body) = object [ "user" .= user
-                                      , "body" .= body
-                                      , "id"   .= id'
-                                      ]
+  toJSON (Say id' user body time) =
+    object [ "user" .= user
+           , "body" .= body
+           , "id"   .= id'
+           , "time" .= time
+           ]
 
 index :: IRCEvent -> IO Response
 index ev = do
