@@ -1,0 +1,13 @@
+Name: MBChatLogger-index
+Version: 0.1
+Cabal-version: >=1.2
+License: MIT
+Author: Oliver Charles
+Synopsis: A search index for chat logs produced by MBChatLogger
+Build-Type: Simple
+
+Executable index-chatlog:
+  Hs-Source-Dirs: src
+  Main-Is: Main.hs
+  Build-Depends: base, http-enumerator, xml-enumerator, text, aeson, xml-types, bytestring, transformers, enumerator
+  GHC-Options: -Wall
