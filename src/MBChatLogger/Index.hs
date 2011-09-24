@@ -2,9 +2,14 @@
 
 module MBChatLogger.Index where
 
-import Data.Aeson              (ToJSON (..), encode, object, (.=))
-import Network.HTTP.Enumerator (parseUrl, withManager, httpLbs, method
-                               ,requestBody, RequestBody(..), Response)
+import Control.Applicative     ((<*>), (<$>))
+import Data.Aeson              (ToJSON (..), object, (.=), FromJSON (..), (.:)
+                               ,Value (..))
+import Data.Text as T
+import Data.Time               (formatTime)
+import Search.ElasticSearch    (Document (..), ElasticSearch, localServer
+                               ,indexDocument, DocumentType (..))
+import System.Locale           (iso8601DateFormat, defaultTimeLocale)
 
 import MBChatLogger.Types
 
@@ -16,10 +21,20 @@ instance ToJSON IRCEvent where
            , "time" .= time
            ]
 
-index :: IRCEvent -> IO Response
-index ev = do
-  r <- parseUrl "http://127.0.0.1:9200/irc/message"
-  withManager $
-    httpLbs r { method = "POST"
-              , requestBody = RequestBodyLBS (encode $ toJSON ev)
-              }
+instance FromJSON IRCEvent where
+  parseJSON (Object o) = Say <$> o .: "id"
+                             <*> o .: "user"
+                             <*> o .: "body"
+                             <*> o .: "time"
+
+instance Document IRCEvent where
+  documentKey (Say _ user _ time) = user `T.append` (T.pack $ formatter time)
+    where formatter = formatTime defaultTimeLocale fmt
+          fmt = iso8601DateFormat $ Just "%H:%M:%S %Q"
+  documentType = DocumentType "event"
+
+server :: ElasticSearch
+server = localServer
+
+index :: IRCEvent -> IO ()
+index = indexDocument server "irc"

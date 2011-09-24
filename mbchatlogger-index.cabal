@@ -9,5 +9,5 @@ Build-Type: Simple
 Executable index-chatlog
   Hs-Source-Dirs: src
   Main-Is: Main.hs
-  Build-Depends: base, http-enumerator, xml-enumerator, text, aeson, xml-types, bytestring, transformers, enumerator, time, old-locale
+  Build-Depends: base, http-enumerator, xml-enumerator, text, aeson, xml-types, bytestring, transformers, enumerator, time, old-locale, elasticsearch
   GHC-Options: -Wall -fno-warn-orphans -fno-warn-unused-do-bind
