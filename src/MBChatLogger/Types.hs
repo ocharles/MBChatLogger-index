@@ -1,4 +1,6 @@
-module MBChatLogger.Types where
+module MBChatLogger.Types
+       (IRCEvent(..)
+       ) where
 
 import Data.Text       (Text)
 import Data.Time.Clock (UTCTime)

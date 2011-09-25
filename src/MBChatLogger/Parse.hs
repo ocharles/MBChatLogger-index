@@ -23,7 +23,7 @@ parseEvent =
       name <- reqTag dc "creator" $
                 reqTagAttr wn "Person" (reqAttr foaf "nick") $
                   \nick -> return nick
-      nsTag dc "relation" $ return ()
+      many (nsTag dc "relation" $ return ())
       return $ Say rdfId name desc date
   where parseTimestamp =
           readTime defaultTimeLocale (iso8601DateFormat $ Just "%H:%M:%SZ") .

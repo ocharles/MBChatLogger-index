@@ -1,17 +1,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module MBChatLogger.Index where
+module MBChatLogger.Index
+       ( index, search
+       ) where
 
 import Control.Applicative     ((<*>), (<$>))
 import Data.Aeson              (ToJSON (..), object, (.=), FromJSON (..), (.:)
                                ,Value (..))
-import Data.Text as T
+import qualified Data.Text as T
 import Data.Time               (formatTime)
 import Search.ElasticSearch    (Document (..), ElasticSearch, localServer
-                               ,indexDocument, DocumentType (..))
+                               ,indexDocument, DocumentType (..)
+                               ,SearchResults)
 import System.Locale           (iso8601DateFormat, defaultTimeLocale)
 
 import MBChatLogger.Types
+
+import qualified Search.ElasticSearch as ES
 
 instance ToJSON IRCEvent where
   toJSON (Say id' user body time) =
@@ -38,3 +43,6 @@ server = localServer
 
 index :: IRCEvent -> IO ()
 index = indexDocument server "irc"
+
+search :: Integer -> T.Text -> IO (SearchResults IRCEvent)
+search = ES.search server "irc"

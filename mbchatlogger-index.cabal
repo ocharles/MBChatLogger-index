@@ -1,13 +1,29 @@
 Name: MBChatLogger-index
 Version: 0.1
-Cabal-version: >=1.2
+Cabal-version: >=1.8
 License: MIT
 Author: Oliver Charles
 Synopsis: A search index for chat logs produced by MBChatLogger
 Build-Type: Simple
 
-Executable index-chatlog
+Library
   Hs-Source-Dirs: src
-  Main-Is: Main.hs
   Build-Depends: base, http-enumerator, xml-enumerator, text, aeson, xml-types, bytestring, transformers, enumerator, time, old-locale, elasticsearch
+  GHC-Options: -Wall -fno-warn-orphans -fno-warn-unused-do-bind
+  Exposed-Modules:
+    MBChatLogger.Index
+    MBChatLogger.Parse
+    MBChatLogger.Types
+    MBChatLogger.XML
+
+Executable index-chatlog
+  Hs-Source-Dirs: indexer
+  Main-Is: Main.hs
+  Build-Depends: base, MBChatLogger-index, xml-enumerator, http-enumerator
+  GHC-Options: -Wall -fno-warn-orphans -fno-warn-unused-do-bind
+
+Executable index-server
+  Hs-Source-Dirs: server
+  Main-Is: Main.hs
+  Build-Depends: base, MBChatLogger-index, snap-server, snap-core, blaze-html, text, transformers, elasticsearch, bytestring
   GHC-Options: -Wall -fno-warn-orphans -fno-warn-unused-do-bind
