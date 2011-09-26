@@ -25,5 +25,5 @@ Executable index-chatlog
 Executable index-server
   Hs-Source-Dirs: server
   Main-Is: Main.hs
-  Build-Depends: base, MBChatLogger-index, snap-server, snap-core, blaze-html, text, transformers, elasticsearch, bytestring
+  Build-Depends: base, MBChatLogger-index, snap-server, snap-core, blaze-html, text, transformers, elasticsearch, bytestring, old-locale, time
   GHC-Options: -Wall -fno-warn-orphans -fno-warn-unused-do-bind
