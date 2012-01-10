@@ -11,8 +11,8 @@ module MBChatLogger.XML
        ) where
 
 import qualified Data.ByteString.Char8 as BS
+import Data.Conduit (Sink, ResourceThrow)
 import qualified Data.Text.Encoding as E
-import           Data.Enumerator            (Iteratee)
 import           Data.Text                  (Text)
 import           Data.XML.Types             (Name (..), Event)
 import           Text.XML.Stream.Parse      (force, tagName, ignoreAttrs
@@ -35,30 +35,30 @@ wn = "http://xmlns.com/wordnet/1.6/"
 
 --------------------------------------------------------------------------------
 -- | Require a tag to be present, but ignore its attributes.
-reqTag :: Monad m
+reqTag :: ResourceThrow m
        => Text
        -> Text
-       -> Iteratee Event m c
-       -> Iteratee Event m c
+       -> Sink Event m c
+       -> Sink Event m c
 reqTag ns tname = force errorMsg . nsTag ns tname
   where errorMsg = BS.unpack (E.encodeUtf8 tname) ++ " is required"
 
 --------------------------------------------------------------------------------
 -- | Require a tag to be present, and use a specific attribute parser.
-reqTagAttr :: Monad m
+reqTagAttr :: ResourceThrow m
            => Text
            -> Text
            -> AttrParser b
-           -> (b -> Iteratee Event m c)
-           -> Iteratee Event m c
+           -> (b -> Sink Event m c)
+           -> Sink Event m c
 reqTagAttr ns tname a f = force errorMsg $ nsTagAttr ns tname a f
   where errorMsg = BS.unpack (E.encodeUtf8 tname) ++ " is required"
 
 --------------------------------------------------------------------------------
 -- | Optional tag parser, that ignore all attributes.
-nsTag :: Monad m
-      => Text -> Text -> Iteratee Event m b
-      -> Iteratee Event m (Maybe b)
+nsTag :: ResourceThrow m
+      => Text -> Text -> Sink Event m b
+      -> Sink Event m (Maybe b)
 nsTag ns tname f = tagName Name { nameLocalName = tname
                                 , nameNamespace = Just ns
                                 , namePrefix = Nothing
@@ -66,9 +66,9 @@ nsTag ns tname f = tagName Name { nameLocalName = tname
 
 --------------------------------------------------------------------------------
 -- | Optional tag parser, that can parse attributes
-nsTagAttr :: Monad m
-          => Text -> Text -> AttrParser a -> (a -> Iteratee Event m b)
-          -> Iteratee Event m (Maybe b)
+nsTagAttr :: ResourceThrow m
+          => Text -> Text -> AttrParser a -> (a -> Sink Event m b)
+          -> Sink Event m (Maybe b)
 nsTagAttr ns tname = tagName Name { nameLocalName = tname
                                   , nameNamespace = Just ns
                                   , namePrefix = Nothing

@@ -1,22 +1,22 @@
 {-# LANGUAGE OverloadedStrings #-}
 
-module MBChatLogger.Parse (parseChatChannel) where
+module MBChatLogger.Parse (parseChatChannel, parseEvent) where
 
-import qualified Data.ByteString.Char8 as BS
-import qualified Data.Text.Encoding as E
-
-import Data.Enumerator       (Iteratee)
+import Data.ByteString (ByteString)
+import Data.Conduit ( Sink, ResourceThrow, (=$=), sequenceSink
+                    , SequencedSinkResponse(..), Conduit)
+import qualified Data.Conduit.List as CL
 import Data.Text             (Text, unpack)
 import Data.Time             (readTime)
 import Data.XML.Types        (Event)
 import System.Locale         (defaultTimeLocale, iso8601DateFormat)
-import Text.XML.Stream.Parse (content, many)
+import Text.XML.Stream.Parse (content, many, parseBytes, def)
 
 import MBChatLogger.Types
 import MBChatLogger.XML
 
-parseEvent :: Text -> Iteratee Event IO (Maybe IRCEvent)
-parseEvent channel =
+parseEvent :: (ResourceThrow m) => Text -> Sink Event m (Maybe IRCEvent)
+parseEvent channel = do
   nsTag rdf "li" $
     reqTagAttr foaf "chatEvent" (reqAttr rdf "ID") $ \rdfId -> do
       date <- parseTimestamp rdfId `fmap` reqTag dc "date" content
@@ -29,17 +29,19 @@ parseEvent channel =
   where parseTimestamp timeString =
           let picoseconds = drop 10 (unpack timeString)
               reader = readTime defaultTimeLocale
-              doReadTime picoseconds
-                | null picoseconds = reader (formatString False) . init
-                | otherwise        = reader (formatString True) . (++ ("." ++ picoseconds)) . init
+              doReadTime pico
+                | null pico = reader (formatString False) . init
+                | otherwise = reader (formatString True) . (++ ("." ++ pico)) . init
           in doReadTime picoseconds . unpack
         formatString False = iso8601DateFormat $ Just "%H:%M:%S"
         formatString True = iso8601DateFormat $ Just "%H:%M:%S%Q"
 
-parseChatChannel :: Text -> Iteratee Event IO [IRCEvent]
-parseChatChannel channel =
-  reqTag rdf "RDF" $
-    reqTag foaf "ChatChannel" $
-      reqTag foaf "chatEventList" $
-        reqTag rdf "Seq" $
-          many (parseEvent channel)
+parseChatChannel :: ResourceThrow m => Text -> Conduit ByteString m IRCEvent
+parseChatChannel channelName =
+    parseBytes def =$= sequenceSink () parsePrelude
+  where parsePrelude _ = CL.drop 9 >> return (StartConduit eventConduit)
+        eventConduit = sequenceSink () parse1
+        parse1 _ = do ev <- parseEvent channelName
+                      return $ case ev of
+                        Just e -> Emit () [e]
+                        Nothing -> Stop

@@ -18,3 +18,6 @@ data IRCEvent =
         -- | The channel the message was said in.
       , sayChannel :: Text
   }
+
+instance Show IRCEvent where
+  show (Say user body _ _) = show user ++ show body
